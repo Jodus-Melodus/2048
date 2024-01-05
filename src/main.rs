@@ -1,5 +1,5 @@
 use rand::Rng;
-use std::io::{self, Read};
+use std::{io::{self}, process::exit};
 
 struct Board {
     board: [i64; 16],
@@ -49,34 +49,34 @@ impl Board {
         compressed
     }
     fn mov(&mut self, direction: char) {
-        if "ns".contains(direction) {
-            for c in 0..4 {
-                let mut col = Vec::new();
+        let prev_board = self.board.clone();
+        for c in 0..4 {
+            let mut col = Vec::new();
 
-                for n in 0..4 {
-                    let idx = 4 * n + c;
-                    col.push(self.board[idx]);
+            for n in 0..4 {
+                let mut idx = 0;
+                if "ew".contains(direction) {
+                    idx = 4 * c + n;
+                } else {
+                    idx = 4 * n + c;
                 }
-                let compressed_col = self.compress(direction, col);
-                for n in 0..4 {
-                    let idx = 4 * n + c;
-                    self.board[idx] = compressed_col[n];
-                }
+                col.push(self.board[idx]);
             }
-        } else if "ew".contains(direction) {
-            for r in 0..4 {
-                let mut row = Vec::new();
-
-                for n in 0..4 {
-                    let idx = 4 * r + n;
-                    row.push(self.board[idx]);
+            let compressed_col = self.compress(direction, col);
+            for n in 0..4 {
+                let mut idx = 0;
+                if "ew".contains(direction) {
+                    idx = 4 * c + n;
+                } else {
+                    idx = 4 * n + c;
                 }
-                let compressed_row = self.compress(direction, row);
-                for n in 0..4 {
-                    let idx = 4 * r + n;
-                    self.board[idx] = compressed_row[n];
-                }
+                self.board[idx] = compressed_col[n];
             }
+        }
+        if prev_board == self.board && !self.board.contains(&0) {
+            println!("Game Over");
+            println!("Reached : {}", 0);
+            exit(0);
         }
     }
     fn check_win(&self) -> bool {
